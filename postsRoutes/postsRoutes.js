@@ -78,28 +78,30 @@ router.put("/:id", (req, res) => {
   const { id } = req.params;
   const changes = req.body;
 
-  db.update(id, changes)
-    .then(change => {
-      if (!changes.id) {
-        res
-          .status(404)
-          .json({ message: "The user with the specified ID does not exist." });
-      }
-      if (changes.title && changes.contents) {
-        res.status(200).json(change);
-      } else {
-        res
-          .status(400)
-          .json({
-            errorMessage: "Please provide title and contents for the user."
+  if (changes.title && changes.contents) {
+    db.update(id, changes)
+      .then(change => {
+        //   console.log(id);
+        if (change) {
+          db.findById(id).then(updatedPost => {
+            res.json(updatedPost);
           });
-      }
-    })
-    .catch(err => {
-      res
-        .status(500)
-        .json({ error: "The user information could not be modified." });
+        } else {
+          res.status(404).json({
+            message: "The user with the specified ID does not exist."
+          });
+        }
+      })
+      .catch(err => {
+        res
+          .status(500)
+          .json({ error: "The user information could not be modified." });
+      });
+  } else {
+    res.status(400).json({
+      errorMessage: "Please provide title and contents for the user."
     });
+  }
 });
 
 module.exports = router;
